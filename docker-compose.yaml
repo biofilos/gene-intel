@@ -1,0 +1,40 @@
+version: "3.9"
+# each service is a container to be built
+services:
+  web:
+    environment:
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - SQL_ENGINE=${SQL_ENGINE}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - SQL_DATABASE=postgres
+      - SQL_USER=${SQL_USER}
+      - SQL_PASSWORD=${SQL_PASSWORD}
+      - SQL_HOST=db
+      - SQL_PORT=5432
+      - DATABASE=postgres
+    # this is important, so I can modify files from outside the container
+    # the value should correspond to the output of `id -u $USER`
+    user: "1000"
+    # build is the directory where the Dockerfile is
+    build: .
+    # what to run when in the container
+    command: >
+      python /code/manage.py runserver 0.0.0.0:8000
+    volumes:
+      - "./backend:/code"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+  db:
+    image: postgres:12
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=password
+      - POSTGRES_USER=${SQL_USER}
+      - POSTGRES_PASSWORD=${SQL_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+volumes:
+  postgres_data:
